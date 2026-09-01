@@ -1,0 +1,13 @@
+from enum import Enum, auto
+
+class PluginScope(Enum):
+    Markup = auto()
+    Site = auto()
+    Post = auto()
+    Author = auto()
+    Feed = auto()
+
+class Plugin:
+    def __init__(self, name: str, scope: set[PluginScope]):
+        self.name = name
+        self.scope = scope

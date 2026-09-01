@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>{{feed.name}}</title>
+        <meta name="description" content="{{feed.longDescription}}">
+
+        <link rel="stylesheet" href="/style.css"/>
+    </head>
+
+    <body>
+        <header>
+            <div class="container header-inner">
+                <a class="site-title" href="/">{{feed.name}}</a>
+
+                <nav>
+                    <a href="/">Home</a>
+                    <a href="/posts">Posts</a>
+                </nav>
+            </div>
+        </header>
+
+
+        <main>
+            <section class="hero container reveal">
+                <p id="eyebrow">{{feed.name}}</p>
+
+                <h1>{{feed.shortDescription}}</h1>
+
+                <p class="hero-description">{{feed.longDescription}}</p>
+            </section>
+
+            <section class="featured container reveal">
+                <a class="featured-card" href="/posts/{{latestPost.id}}">
+
+                    <div class="featured-image">
+                        {% if latestPost.image is not none %}
+                        {{latestPost.image.html(site)}}
+                        {%- endif -%}
+                    </div>
+
+                    <div class="featured-content">
+                        <div class="category">
+                            Latest
+                        </div>
+
+                        <h2>{{latestPost.name}}</h2>
+
+                        <p>{{latestPost.description}}</p>
+
+                        <div class="post-meta">
+                            <span>{{latestPost.date.strftime("%b %d") if latestPost.date.year == now.year else latestPost.date.strftime("%b %d, %Y")}}</span>
+                            <span style="opacity: 0.4;">•</span>
+                            <span>{{latestPost.readTime}} min read</span>
+                        </div>
+                    </div>
+
+                </a>
+            </section>
+
+            <section class="container">
+
+                <div class="section-heading reveal">
+                    <h2>Recent posts</h2>
+                    <a id="all-posts" href="/posts">View all posts →</a>
+                </div>
+
+                <div class="post-grid">
+                    <!-- todo: no posts msg (maybe look at min-height?) -->
+                    {% for post in posts[:6] %}
+                    <a class="card reveal" href="/posts/{{post.id}}">
+                        <div class="post-image">
+                            {% if post.image is not none %}
+                            {{post.image.html(site)}}
+                            {%- endif -%}
+                        </div>
+
+                        <div class="post-content">
+                            <div class="category">
+                                {%- set ns = namespace(elements=[]) -%}
+                                {%- for tag in post.tags -%}
+                                {%- set element = '<span>' ~ tag ~ '</span>' -%}
+                                {%- set ns.elements = ns.elements + [element] -%}
+                                {%- endfor -%}
+                                {{ ns.elements | join('<span style="opacity: 0.4; margin-inline: 10px;">•</span>') }}
+                            </div>
+
+                            <h3>{{post.name}}</h3>
+
+                            <p>{{post.description}}</p>
+
+                            <div class="post-meta">
+                                <span>{{post.date.strftime("%b %d") if post.date.year == now.year else post.date.strftime("%b %d, %Y")}}</span>
+                                <span style="opacity: 0.4;">•</span>
+                                <span>{{post.readTime}} min read</span>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="container footer-inner">
+                <span>{{copyright}}</span>
+                <span>Built with Mergenthaler</span>
+            </div>
+        </footer>
+
+        <script src="/reveal.js"></script>
+
+    </body>
+</html>

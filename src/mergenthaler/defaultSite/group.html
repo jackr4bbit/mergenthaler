@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>{{feed.name}} | {{group}} authors</title>
+        <meta name="description" content="{{feed.longDescription}}">
+
+        <link rel="stylesheet" href="/style.css"/>
+    </head>
+
+    <body>
+        <header>
+            <div class="container header-inner">
+                <a class="site-title" href="/">{{feed.name}}</a>
+
+                <nav>
+                    <a href="/">Home</a>
+                    <a href="/posts">Posts</a>
+                </nav>
+            </div>
+        </header>
+
+
+        <main>
+            <section class="container" style="margin-top: 80px;">
+                <div class="section-heading reveal">
+                    <h2>Authors in the <span id="category-name">{{group}}</span> group</h2>
+                </div>
+
+                <div class="post-grid">
+                    {% for author in authors %}
+                    <a class="card reveal" href="/authors/{{author.id}}">
+                        <div class="post-image">
+                            {% if author.image is not none %}
+                            {{author.image.html(site)}}
+                            {%- endif -%}
+                        </div>
+
+                        <div class="post-content">
+                            <div class="category">
+                                {%- set ns = namespace(elements=[]) -%}
+                                {%- for group in author.groups -%}
+                                {%- set element = '<span>' ~ group ~ '</span>' -%}
+                                {%- set ns.elements = ns.elements + [element] -%}
+                                {%- endfor -%}
+                                {{ ns.elements | join('<span style="opacity: 0.4; margin-inline: 10px;">•</span>') }}
+
+                            </div>
+
+                            <h3>{{author.name}}</h3>
+
+                            <p>{{author.bio.html(site)}}</p>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="container footer-inner">
+                <span>{{copyright}}</span>
+                <span>Built with Mergenthaler</span>
+            </div>
+        </footer>
+
+        <script src="/reveal.js"></script>
+
+    </body>
+</html>

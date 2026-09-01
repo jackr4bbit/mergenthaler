@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>{{feed.name}} | {{post.name}}</title>
+        <meta name="description" content="{{post.description}}">
+
+        <link rel="stylesheet" href="/style.css"/>
+    </head>
+
+    <body>
+        <header>
+            <div class="container header-inner">
+                <a class="site-title" href="/">{{feed.name}}</a>
+
+                <nav>
+                    <a href="/">Home</a>
+                    <a href="/posts">Posts</a>
+                </nav>
+            </div>
+        </header>
+
+
+        <main>
+            <header class="page-header reveal">
+
+                <div class="category">
+                    {%- set ns = namespace(elements=[]) -%}
+                    {%- for tag in post.tags -%}
+                    {%- set element = '<a href="/tags/' ~ tag ~ '">' ~ tag ~ '</a>' -%}
+                    {%- set ns.elements = ns.elements + [element] -%}
+                    {%- endfor -%}
+                    {{ ns.elements | join('<span style="opacity: 0.4; margin-inline: 10px;">•</span>') }}
+                </div>
+
+                <h1>{{post.name}}</h1>
+
+                <p class="post-description">{{post.description}}</p>
+
+                <div class="post-meta">
+                    <div style="display: flex; align-items: center;">
+                        <span style="white-space: pre;">By </span>
+                        {%- for author in post.authors -%}
+                        {%- if author is string -%}
+                        <span class="author">{{author}}</span>
+                        {%- else -%}
+                        <a class="author" href="/authors/{{author.id}}">{{author.name}}</a>
+                        {%- endif -%}
+                        {%- if loop.length > 1 -%}
+                        <span style="white-space: pre;">{%- if loop.revindex0 == 1 %} and {% elif not loop.last %}, {% endif -%}</span>
+                        {%- endif -%}
+                        {%- endfor -%}
+                    </div>
+
+                    <span style="opacity: 0.4;">•</span>
+
+                    <span>{{post.date.strftime("%b %d") if post.date.year == now.year else post.date.strftime("%b %d, %Y")}}</span>
+
+                    <span style="opacity: 0.4;">•</span>
+
+                    <span>{{post.readTime}} min read</span>
+                </div>
+
+            </header>
+
+            <div class="page-image reveal">
+                {% if post.image is not none %}
+                {{post.image.html(site)}}
+                {%- endif -%}
+            </div>
+
+
+            <article class="post-body reveal">
+                {{post.content.html(site)}}
+            </article>
+
+
+            <section class="post-footer reveal">
+                <div class="post-footer-meta">
+                    <div class="author-info">
+                        {%- for author in post.authors -%}
+                        {%- if author is string -%}
+                        <span class="author">{{author}}</span>
+                        {%- else -%}
+                        <a class="author" href="/authors/{{author.id}}">{{author.name}}</a>
+                        {%- endif -%}
+                        {%- if loop.length > 1 -%}
+                        <span style="white-space: pre;">{%- if loop.revindex0 == 1 %} and {% elif not loop.last %}, {% endif -%}</span>
+                        {%- endif -%}
+                        {%- endfor -%}
+                        <br>Written {{post.date.strftime("%B %d, %Y")}}
+                    </div>
+
+                    <a class="back-link" href="/posts">
+                        ← Back to posts
+                    </a>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="container footer-inner">
+                <span>{{copyright}}</span>
+                <span>Built with Mergenthaler</span>
+            </div>
+        </footer>
+
+        <script src="/reveal.js"></script>
+    </body>
+</html>
