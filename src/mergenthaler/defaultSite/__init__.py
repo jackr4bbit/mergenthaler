@@ -47,10 +47,10 @@ class DefaultSite(Site):
             "site": self,
             "copyright": f"© {sorted(self.feed.posts, key=lambda post: post.date, reverse=True)[0].date.strftime("%Y")} {formatList([author.name for author in self.feed.defaultAuthors]) if self.feed.defaultAuthors else self.feed.name}"
         }
-        self.notFoundPage = Template((resources.files("mergenthaler") / "src" / "defaultSite" / "404.html").read_text()).render(**self.jinjaArgs)
+        self.notFoundPage = Template((resources.files("mergenthaler") / "defaultSite" / "404.html").read_text()).render(**self.jinjaArgs)
 
     def files(self) -> Iterator[tuple[str, str | Path]]:
-        theme = resources.files("mergenthaler") / "src" / "defaultSite"
+        theme = resources.files("mergenthaler") / "defaultSite"
 
         posts = sorted(self.feed.posts, key=lambda post: post.date, reverse=True)
 
