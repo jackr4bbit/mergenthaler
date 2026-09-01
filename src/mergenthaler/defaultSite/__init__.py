@@ -3,10 +3,11 @@ from colour import Color
 from collections.abc import Iterator
 from pathlib import Path
 from jinja2 import Template
+from datetime import date
+from importlib import resources
 from ..site import Site
 from .. import files
 from .. import markup
-from datetime import date
 
 
 def formatList(items: list[str]):
@@ -46,10 +47,10 @@ class DefaultSite(Site):
             "site": self,
             "copyright": f"© {sorted(self.feed.posts, key=lambda post: post.date, reverse=True)[0].date.strftime("%Y")} {formatList([author.name for author in self.feed.defaultAuthors]) if self.feed.defaultAuthors else self.feed.name}"
         }
-        self.notFoundPage = Template((Path.cwd() / "src" / "defaultSite" / "404.html").read_text()).render(**self.jinjaArgs)
+        self.notFoundPage = Template((resources.files("mergenthaler") / "src" / "defaultSite" / "404.html").read_text()).render(**self.jinjaArgs)
 
     def files(self) -> Iterator[tuple[str, str | Path]]:
-        theme = Path.cwd() / "src" / "defaultSite"  # resources.files("mergenthaler") / "src" / "defaultSite"
+        theme = resources.files("mergenthaler") / "src" / "defaultSite"
 
         posts = sorted(self.feed.posts, key=lambda post: post.date, reverse=True)
 
