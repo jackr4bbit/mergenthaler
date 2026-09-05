@@ -7,7 +7,7 @@ name = "mergenthaler"
 dynamic = ["version"]
 description = "A blogging platform and markup language."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.14"
 authors = [
     { name = "Jack Huey", email = "jhhuey@icloud.com" }
 ]
