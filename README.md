@@ -8,30 +8,30 @@
 ## Installation
 
 ```bash
-pip install git+https://github.com/jackr4bbit/mergenthaler
+pip install mergenthaler
 ```
 
 
 ## Features
 
-| Feature                                                                                                           | Status |
-|-------------------------------------------------------------------------------------------------------------------|:------:|
-| [Feed files parsing](#feed)                                                                                       |   ✅   |
-| [Author files parsing](#author)                                                                                   |   ✅   |
-| [Post files parsing](#post)                                                                                       |   ✅   |
-|                                                                                                                   |        |
-| [Elements: Images (both local and external), Links, Lists, Code blocks, Block quotes, and formatted text](#markup) |   ✅   |
-| [Text formats: Header, Italic, Underline, Bold, and Strikethrough](#text)                                         |   ✅   |
-|                                                                                                                   |        |
-| [Static site generator](#build)                                                                                   |   ✅   |
-| [Server (automatically updates for new/edited posts/authors)](#serve)                                             |   ✅   |
-| [Syntax checker](#test)                                                                                           |   ✅   |
-|                                                                                                                   |        |
-| Custom site themes                                                                                                |   🛠️   |
-| Plugins                                                                                                           |   🛠️   |
-|                                                                                                                   |        |
-| RSS                                                                                                               |   ⏳   |
-| Markdown to Mergenthaler Markup                                                                                   |   ⏳   |
+| Feature                                                                                                                   | Status |
+|---------------------------------------------------------------------------------------------------------------------------|:------:|
+| [Feed files parsing](#feed)                                                                                               |   ✅   |
+| [Author files parsing](#author)                                                                                           |   ✅   |
+| [Post files parsing](#post)                                                                                               |   ✅   |
+|                                                                                                                           |        |
+| [Elements: Images (both local and external), Links, Lists, Code blocks, Block quotes, and formatted text](#markup-syntax) |   ✅   |
+| [Text formats: Header, Italic, Underline, Bold, and Strikethrough](#text)                                                 |   ✅   |
+|                                                                                                                           |        |
+| [Static site generator](#build)                                                                                           |   ✅   |
+| [Server (automatically updates for new/edited posts/authors)](#serve)                                                     |   ✅   |
+| [Syntax checker](#test)                                                                                                   |   ✅   |
+|                                                                                                                           |        |
+| Custom site themes                                                                                                        |   🛠️   |
+| Plugins                                                                                                                   |   🛠️   |
+|                                                                                                                           |        |
+| RSS                                                                                                                       |   ⏳   |
+| Markdown to Mergenthaler Markup                                                                                           |   ⏳   |
 
 
 ## Usage
@@ -102,7 +102,7 @@ Author name
 Bio/description using Mergenthaler Markup.
 ```
 A custom id is optional. If none is specified, the id will be the alphanumeric and hyphen characters in the author's name with spaces replaced with hyphens.  
-An image is optional and can be external, relative to the post, or relative to the feed (see [the section on Markup images](#image)).   
+An image is optional and can be external, relative to the post, or relative to the feed (see [the section on Markup images](#images)).   
 Groups are optional.
 All lines can be in any order except for the name.
 Mergenthaler Markup text formats (e.g. bold) may be used in the bio, but elements (images, links, lists, code blocks, block quotes, or images) may not.
@@ -124,7 +124,7 @@ DD/MM/YYYY
 Content using Mergenthaler Markup.
 ```
 A custom id is optional. If none is specified, the id will be the alphanumeric and hyphen characters in the post's name with spaces replaced with hyphens.  
-An image is optional and can be external, relative to the post, or relative to the feed (see [the section on Markup images](#image)).  
+An image is optional and can be external, relative to the post, or relative to the feed (see [the section on Markup images](#images)).  
 Authors are optional (if none are specified, it will use the default authors defined in the feed file) and can be the authors id or the author's name (which will throw an error if there are multiple authors with the same name). If an author's file isn't found, it will have their name on the post but they won't have a page of their own.  
 Tags are optional.
 All lines can be in any order except for the title and description.
