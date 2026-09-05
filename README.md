@@ -4,6 +4,8 @@
 
 ---
 
+![PyPI Version](https://img.shields.io/pypi/v/mergenthaler?style=for-the-badge)
+
 
 ## Installation
 
