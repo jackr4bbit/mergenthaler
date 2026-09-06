@@ -8,7 +8,6 @@ import math
 from .utils import validUrl,removeScheme
 from . import markup
 from . import site
-from . import defaultSite
 
 class File:
     def __init__(self, name: str, feed: Feed, image: markup.Image | None = None, customId: str | None = None, plugins: set[type[markup.Plugin]] | None = None):
@@ -185,7 +184,7 @@ class DummyAuthor:
         self.name = name
 
 class Feed:
-    def __init__(self, name: str, shortDescription: str, longDescription: str, authors: list[Author], posts: list[Post], tags: set[str], groups: set[str], root: Path, siteTheme: type[site.Site] = defaultSite.DefaultSite, defaultAuthors: list[Author] | None = None):
+    def __init__(self, name: str, shortDescription: str, longDescription: str, authors: list[Author], posts: list[Post], tags: set[str], groups: set[str], root: Path, siteTheme: type[site.Site] = site.Site, defaultAuthors: list[Author] | None = None):
         self.name = name
         self.shortDescription = shortDescription
         self.longDescription = longDescription

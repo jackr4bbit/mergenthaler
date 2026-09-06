@@ -1,11 +1,9 @@
-from packaging.version import Version
 from colour import Color
 from collections.abc import Iterator
 from pathlib import Path
 from jinja2 import Template
 from datetime import date
 from importlib import resources
-from ..site import Site
 from .. import files
 from .. import markup
 
@@ -23,10 +21,9 @@ def formatList(items: list[str]):
     return f"{", ".join(items[:-1])}, and {items[-1]}"
 
 
-class DefaultSite(Site):
-    name = "Default Site"
-    version = Version("1.0.0")
-    colors = {
+class Site:
+    name: str = "Default Site"
+    colors: dict[str, Color] = {
         "text": Color("#171717"),
         "accent": Color("#2563eb"),
         "muted": Color("#737373"),
@@ -38,19 +35,20 @@ class DefaultSite(Site):
         "orange": Color("#f97316"),
         "yellow": Color("#d9ab06")
     }
+    assetPath: str = "images"
 
     def __init__(self, feed: files.Feed):
-        super().__init__(feed)
+        self.feed = feed
         self.jinjaArgs = {
             "feed": self.feed,
             "now": date.today(),
             "site": self,
             "copyright": f"© {sorted(self.feed.posts, key=lambda post: post.date, reverse=True)[0].date.strftime("%Y")} {formatList([author.name for author in self.feed.defaultAuthors]) if self.feed.defaultAuthors else self.feed.name}"
         }
-        self.notFoundPage = Template((resources.files("mergenthaler") / "defaultSite" / "404.html").read_text()).render(**self.jinjaArgs)
+        self.notFoundPage = Template((resources.files("mergenthaler") / "site" / "404.html").read_text()).render(**self.jinjaArgs)
 
     def files(self) -> Iterator[tuple[str, str | Path]]:
-        theme = resources.files("mergenthaler") / "defaultSite"
+        theme = resources.files("mergenthaler") / "site"
 
         posts = sorted(self.feed.posts, key=lambda post: post.date, reverse=True)
 
