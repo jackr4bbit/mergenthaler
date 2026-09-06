@@ -1,7 +1,6 @@
 from typing import Self, cast
 import re
 from pathlib import Path
-from packaging.version import Version
 import html
 
 from .utils import validUrl, removeScheme
@@ -73,7 +72,6 @@ class Format:
 
 class Plugin:
     name: str
-    version: Version
     formats: set[type[Format]] = set()
     elements: list[type[Element]] = []
 
