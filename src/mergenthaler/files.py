@@ -206,16 +206,16 @@ class Feed:
             feedFiles = list(feed.glob("*.mgfeed"))
             match len(feedFiles):
                 case 0:
-                    raise SyntaxError(f"No '.mgfeed' files exist in {feed}.")
+                    raise FileNotFoundError(f"No '.mgfeed' files exist in {feed}.")
                 case 1:
                     feedDir = feed
                     feedConfig = feedFiles[0]
                 case _:
-                    raise SyntaxError(f"More than one '.mgfeed' files exist in {feed}. Specify one.")
+                    raise ValueError(f"More than one '.mgfeed' files exist in {feed}. Specify one.")
         elif not feed.exists():
-            raise SyntaxError(f"{feed} doesn't exist.")
+            raise FileNotFoundError(f"{feed} doesn't exist.")
         else:
-            raise SyntaxError(f"Unknown error while looking for feed file.")
+            raise Exception(f"Unknown error while looking for feed file.")
 
         lines = feedConfig.read_text().splitlines()
         if len(lines) < 3:
