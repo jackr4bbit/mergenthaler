@@ -182,7 +182,7 @@ class Text(Element):
                 matches.append((format, match))
 
         if matches:
-            format, match = max(matches, key=lambda x: x[1].start())
+            format, match = min(matches, key=lambda x: x[1].start())
             return (
                 cls.parse(match.group(1), path, feed, formats) +
                 cls(
