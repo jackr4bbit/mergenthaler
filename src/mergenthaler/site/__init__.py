@@ -1,9 +1,10 @@
 from colour import Color
 from collections.abc import Iterator
 from pathlib import Path
-from jinja2 import Template
+from jinja2 import Environment, PackageLoader
 from datetime import date
 from importlib import resources
+
 from .. import files
 from .. import markup
 
@@ -45,26 +46,25 @@ class Site:
             "site": self,
             "copyright": f"© {sorted(self.feed.posts, key=lambda post: post.date, reverse=True)[0].date.strftime("%Y")} {formatList([author.name for author in self.feed.defaultAuthors]) if self.feed.defaultAuthors else self.feed.name}"
         }
-        self.notFoundPage = Template((resources.files("mergenthaler") / "site" / "404.html").read_text()).render(**self.jinjaArgs)
+        self.jinjaEnv = Environment(loader=PackageLoader("mergenthaler", "site"))
+        self.notFoundPage = self.jinjaEnv.get_template("404.html").render(**self.jinjaArgs)
 
     def files(self) -> Iterator[tuple[str, str | Path]]:
-        theme = resources.files("mergenthaler") / "site"
-
         posts = sorted(self.feed.posts, key=lambda post: post.date, reverse=True)
 
-        yield "index.html", Template((theme / "index.html").read_text()).render(
+        yield "index.html", self.jinjaEnv.get_template("index.html").render(
             **self.jinjaArgs,
             latestPost=posts[0],
             posts=posts[1:]
         )
 
-        yield "style.css", Template((theme / "style.css").read_text()).render(
+        yield "style.css", self.jinjaEnv.get_template("style.css").render(
             **{name: color.hex for name, color in self.colors.items()}
         )
 
-        yield "reveal.js", (theme / "reveal.js").read_text()
+        yield "reveal.js", (resources.files("mergenthaler") / "site" / "reveal.js").read_text()
 
-        yield "posts/index.html", Template((theme / "posts.html").read_text()).render(
+        yield "posts/index.html", self.jinjaEnv.get_template("posts.html").render(
             **self.jinjaArgs,
             posts=posts
         )
@@ -78,7 +78,7 @@ class Site:
             return None
 
         for author in self.feed.authors:
-            yield f"authors/{author.id}.html", Template((theme / "author.html").read_text()).render(
+            yield f"authors/{author.id}.html", self.jinjaEnv.get_template("author.html").render(
                 **self.jinjaArgs,
                 author=author,
                 posts=[post for post in self.feed.posts if author in post.authors]
@@ -88,7 +88,7 @@ class Site:
                 yield image
 
         for post in self.feed.posts:
-            yield f"posts/{post.id}.html", Template((theme / "post.html").read_text()).render(
+            yield f"posts/{post.id}.html", self.jinjaEnv.get_template("post.html").render(
                 **self.jinjaArgs,
                 post=post
             )
@@ -98,14 +98,14 @@ class Site:
                     yield image
 
         for tag in self.feed.tags:
-            yield f"tags/{tag}.html", Template((theme / "tag.html").read_text()).render(
+            yield f"tags/{tag}.html", self.jinjaEnv.get_template("tag.html").render(
                 **self.jinjaArgs,
                 tag=tag,
                 posts=[post for post in posts if tag in post.tags]
             )
 
         for group in self.feed.groups:
-            yield f"groups/{group}.html", Template((theme / "group.html").read_text()).render(
+            yield f"groups/{group}.html", self.jinjaEnv.get_template("group.html").render(
                 **self.jinjaArgs,
                 group=group,
                 authors=[author for author in self.feed.authors if group in author.groups]

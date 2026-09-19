@@ -1,0 +1,31 @@
+{% macro card(post, site, now) -%}
+<a class="card reveal" href="/posts/{{post.id}}">
+    <div class="post-image">
+        {% if post.image is not none %}
+        {{post.image.html(site)}}
+        {%- endif -%}
+    </div>
+
+    <div class="post-content">
+        <div class="category">
+            {%- set ns = namespace(elements=[]) -%}
+            {%- for tag in post.tags -%}
+            {%- set element = '<span>' ~ tag ~ '</span>' -%}
+            {%- set ns.elements = ns.elements + [element] -%}
+            {%- endfor -%}
+            {{ ns.elements | join('<span style="opacity: 0.4; margin-inline: 10px;">•</span>') }}
+
+        </div>
+
+        <h3>{{post.name}}</h3>
+
+        <p>{{post.description}}</p>
+
+        <div class="post-meta">
+            <span>{{post.date.strftime("%b %d") if post.date.year == now.year else post.date.strftime("%b %d, %Y")}}</span>
+            <span style="opacity: 0.4;">•</span>
+            <span>{{post.readTime}} min read</span>
+        </div>
+    </div>
+</a>
+{%- endmacro %}

@@ -1,46 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "internal/base.html" %}
 
-        <title>{{feed.name}}</title>
-        <meta name="description" content="{{feed.longDescription}}">
+{% block content %}
+<section class="hero container reveal">
+    <p id="eyebrow">404</p>
 
-        <link rel="stylesheet" href="/style.css"/>
-    </head>
+    <h1>Page not found.</h1>
 
-    <body>
-        <header>
-            <div class="container header-inner">
-                <a class="site-title" href="/">{{feed.name}}</a>
-
-                <nav>
-                    <a href="/">Home</a>
-                    <a href="/posts">Posts</a>
-                </nav>
-            </div>
-        </header>
-
-
-        <main>
-            <section class="hero container reveal">
-                <p id="eyebrow">404</p>
-
-                <h1>Page not found.</h1>
-
-                <p class="hero-description">You can go <a href="/">home</a> or view <a href="/posts">all posts</a>.</p>
-            </section>
-        </main>
-
-        <footer>
-            <div class="container footer-inner">
-                <span>{{copyright}}</span>
-                <span>Built with <a href="https://github.com/jackr4bbit/mergenthaler">Mergenthaler</a></span>
-            </div>
-        </footer>
-
-        <script src="/reveal.js"></script>
-
-    </body>
-</html>
+    <p class="hero-description">You can go <a href="/">home</a> or view <a href="/posts">all posts</a>.</p>
+</section>
+{% endblock %}

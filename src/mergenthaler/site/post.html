@@ -1,112 +1,81 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends "internal/base.html" %}
 
-        <title>{{feed.name}} | {{post.name}}</title>
-        <meta name="description" content="{{post.description}}">
+{% block title %}{{post.name}}{% endblock %}
+{% block description %}{{post.description}}{% endblock %}
 
-        <link rel="stylesheet" href="/style.css"/>
-    </head>
+{% block content %}
+<header class="page-header reveal">
 
-    <body>
-        <header>
-            <div class="container header-inner">
-                <a class="site-title" href="/">{{feed.name}}</a>
+    <div class="category">
+        {%- set ns = namespace(elements=[]) -%}
+        {%- for tag in post.tags -%}
+        {%- set element = '<a href="/tags/' ~ tag ~ '">' ~ tag ~ '</a>' -%}
+        {%- set ns.elements = ns.elements + [element] -%}
+        {%- endfor -%}
+        {{ ns.elements | join('<span style="opacity: 0.4; margin-inline: 10px;">•</span>') }}
+    </div>
 
-                <nav>
-                    <a href="/">Home</a>
-                    <a href="/posts">Posts</a>
-                </nav>
-            </div>
-        </header>
+    <h1>{{post.name}}</h1>
 
+    <p class="post-description">{{post.description}}</p>
 
-        <main>
-            <header class="page-header reveal">
+    <div class="post-meta">
+        <div style="display: flex; align-items: center;">
+            <span style="white-space: pre;">By </span>
+            {%- for author in post.authors -%}
+            {%- if author is string -%}
+            <span class="author">{{author}}</span>
+            {%- else -%}
+            <a class="author" href="/authors/{{author.id}}">{{author.name}}</a>
+            {%- endif -%}
+            {%- if loop.length > 1 -%}
+            <span style="white-space: pre;">{%- if loop.revindex0 == 1 %} and {% elif not loop.last %}, {% endif -%}</span>
+            {%- endif -%}
+            {%- endfor -%}
+        </div>
 
-                <div class="category">
-                    {%- set ns = namespace(elements=[]) -%}
-                    {%- for tag in post.tags -%}
-                    {%- set element = '<a href="/tags/' ~ tag ~ '">' ~ tag ~ '</a>' -%}
-                    {%- set ns.elements = ns.elements + [element] -%}
-                    {%- endfor -%}
-                    {{ ns.elements | join('<span style="opacity: 0.4; margin-inline: 10px;">•</span>') }}
-                </div>
+        <span style="opacity: 0.4;">•</span>
 
-                <h1>{{post.name}}</h1>
+        <span>{{post.date.strftime("%b %d") if post.date.year == now.year else post.date.strftime("%b %d, %Y")}}</span>
 
-                <p class="post-description">{{post.description}}</p>
+        <span style="opacity: 0.4;">•</span>
 
-                <div class="post-meta">
-                    <div style="display: flex; align-items: center;">
-                        <span style="white-space: pre;">By </span>
-                        {%- for author in post.authors -%}
-                        {%- if author is string -%}
-                        <span class="author">{{author}}</span>
-                        {%- else -%}
-                        <a class="author" href="/authors/{{author.id}}">{{author.name}}</a>
-                        {%- endif -%}
-                        {%- if loop.length > 1 -%}
-                        <span style="white-space: pre;">{%- if loop.revindex0 == 1 %} and {% elif not loop.last %}, {% endif -%}</span>
-                        {%- endif -%}
-                        {%- endfor -%}
-                    </div>
+        <span>{{post.readTime}} min read</span>
+    </div>
 
-                    <span style="opacity: 0.4;">•</span>
+</header>
 
-                    <span>{{post.date.strftime("%b %d") if post.date.year == now.year else post.date.strftime("%b %d, %Y")}}</span>
-
-                    <span style="opacity: 0.4;">•</span>
-
-                    <span>{{post.readTime}} min read</span>
-                </div>
-
-            </header>
-
-            <div class="page-image reveal">
-                {% if post.image is not none %}
-                {{post.image.html(site)}}
-                {%- endif -%}
-            </div>
+<div class="page-image reveal">
+    {% if post.image is not none %}
+    {{post.image.html(site)}}
+    {%- endif -%}
+</div>
 
 
-            <article class="post-body reveal">
-                {{post.content.html(site)}}
-            </article>
+<article class="post-body reveal">
+    {{post.content.html(site)}}
+</article>
 
 
-            <section class="post-footer reveal">
-                <div class="post-footer-meta">
-                    <div class="author-info">
-                        {%- for author in post.authors -%}
-                        {%- if author is string -%}
-                        <span class="author">{{author}}</span>
-                        {%- else -%}
-                        <a class="author" href="/authors/{{author.id}}">{{author.name}}</a>
-                        {%- endif -%}
-                        {%- if loop.length > 1 -%}
-                        <span style="white-space: pre;">{%- if loop.revindex0 == 1 %} and {% elif not loop.last %}, {% endif -%}</span>
-                        {%- endif -%}
-                        {%- endfor -%}
-                        <br>Written {{post.date.strftime("%B %d, %Y")}}
-                    </div>
+<section class="post-footer reveal">
+    <div class="post-footer-meta">
+        <div class="author-info">
+            {%- for author in post.authors -%}
+            {%- if author is string -%}
+            <span class="author">{{author}}</span>
+            {%- else -%}
+            <a class="author" href="/authors/{{author.id}}">{{author.name}}</a>
+            {%- endif -%}
+            {%- if loop.length > 1 -%}
+            <span style="white-space: pre;">{%- if loop.revindex0 == 1 %} and {% elif not loop.last %}, {% endif -%}</span>
+            {%- endif -%}
+            {%- endfor -%}
+            <br>Written {{post.date.strftime("%B %d, %Y")}}
+        </div>
 
-                    <a class="back-link" href="/posts">
-                        ← Back to posts
-                    </a>
-                </div>
-            </section>
-        </main>
-
-        <footer>
-            <div class="container footer-inner">
-                <span>{{copyright}}</span>
-                <span>Built with <a href="https://github.com/jackr4bbit/mergenthaler">Mergenthaler</a></span>
-            </div>
-        </footer>
-
-        <script src="/reveal.js"></script>
-    </body>
-</html>
+        <a class="back-link" href="/posts">
+            ← Back to posts
+        </a>
+    </div>
+</section>
+{% endblock %}

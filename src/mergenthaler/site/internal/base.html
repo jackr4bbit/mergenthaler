@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        {% set title %}{% block title %}{% endblock %}{% endset %}
+        <title>{% if title | trim %}{{feed.name}} | {{ page_title | trim }}{% else %}{{feed.name}}{% endif %}</title>
+        <meta name="description" content="{% block description %}{{feed.longDescription}}{% endblock %}">
+
+        <link rel="stylesheet" href="/style.css"/>
+    </head>
+
+    <body>
+        {% include "internal/header.html" %}
+
+
+        <main>
+            {% block content %}
+            {% endblock %}
+        </main>
+
+        {% include "internal/footer.html" %}
+
+        <script src="/reveal.js"></script>
+    </body>
+</html>
