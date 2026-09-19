@@ -27,6 +27,6 @@ packages.find = { where = ["src"] }
 mg = "mergenthaler.__main__:main"
 
 [tool.setuptools.package-data]
-mergenthaler = ["site/*.html"]
+mergenthaler = ["site/**/*"]
 
 [tool.setuptools_scm]
