@@ -130,7 +130,7 @@ class Post(File):
         else:
             self.authors = authors
         self.tags = set() if tags is None else tags
-        self.readTime =  math.ceil(" ".join(str(element) for element in self.content.elements).replace("  ", "").count(" ") / 195)
+        self.readTime = math.ceil(len(" ".join(str(element) for element in self.content.elements).split()) / 195)
 
     @classmethod
     def parse(cls, path: Path, feed: Feed) -> Self:
