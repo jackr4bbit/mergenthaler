@@ -38,7 +38,7 @@ class Markup:
             for elementType in [elementType for plugin in plugins for elementType in plugin.elements] + defaultElements:
                 match = re.search(elementType.match, remaining, flags=re.DOTALL | re.MULTILINE)
                 if match:
-                    element = elementType.parse(remaining[match.start():match.end()], path, feed, {format for plugin in plugins for format in plugin.formats})
+                    element = elementType.parse(remaining[match.start():match.end()], path, feed, [format for plugin in plugins for format in plugin.formats])
                     if element:
                         parts = []
                         parts += parseParts(remaining[:match.start()])
@@ -56,7 +56,7 @@ class Element:
     def __str__(self) -> str: ...
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: set[type[Format]] | None = None) -> Self | None: ...
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self | None: ...
 
     def html(self, site: Site) -> str: ...
 
@@ -65,15 +65,17 @@ class Format:
     start: str
     end: str
 
-    def __init__(self, groups: dict[str | int, str]):
+    def __init__(self, text: Text, groups: dict[str | int, str]):
+        self.text = text
         self.groups = groups
 
-    def html(self, text: Text, site: Site) -> str: ...
+    def html(self, site: Site) -> str: ...
 
 class Plugin:
-    name: str
-    formats: set[type[Format]] = set()
-    elements: list[type[Element]] = []
+    def __init__(self, name: str, formats: list[type[Format]], elements: list[type[Element]]):
+        self.name = name
+        self.formats = formats
+        self.elements = elements
 
 class SimpleFormat(Format):
     name: str
@@ -82,8 +84,8 @@ class SimpleFormat(Format):
     htmlStart: str
     htmlEnd: str | None = None
 
-    def html(self, text: Text, site: Site) -> str:
-        return type(self).htmlStart + text.html(site, noFormat=True) + (type(self).htmlEnd or type(self).htmlStart[:1] + "/" + type(self).htmlStart[1:])
+    def html(self, site: Site) -> str:
+        return type(self).htmlStart + self.text.html(site, noFormat=True) + (type(self).htmlEnd or type(self).htmlStart[:1] + "/" + type(self).htmlStart[1:])
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -125,7 +127,7 @@ class Strikethrough(SimpleFormat):
     end = "--"
     htmlStart = "<s>"
 
-defaultFormats = {Header, Italic, Underline, Bold, Strikethrough}
+defaultFormats = [Header, Italic, Underline, Bold, Strikethrough]
 
 class Text(Element):
     match = r".*"
@@ -140,7 +142,7 @@ class Text(Element):
         else:
             raise TypeError("You must pass a string or a Markup object")
 
-        self.format = None if format is None else format(groups or {})
+        self.format = None if format is None else format(self, groups or {})
 
     def __add__(self, other: str | Self) -> Self:
         if isinstance(other, str):
@@ -169,19 +171,18 @@ class Text(Element):
         return len(self.__data) == 0
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: set[type[Format]] | None = None) -> Self:
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self:
         if formats is None:
-            formats = set()
+            formats = []
 
         matches = []
 
-        for format in defaultFormats | formats:
+        for format in formats + defaultFormats:
             for match in re.finditer(r"(.*?)" + format.start + r"(?P<content>.+)" + format.end + r"(.*)", text, flags=re.DOTALL):
                 matches.append((format, match))
 
         if matches:
             format, match = max(matches, key=lambda x: x[1].start())
-
             return (
                 cls.parse(match.group(1), path, feed, formats) +
                 cls(
@@ -190,7 +191,7 @@ class Text(Element):
                     groups = {
                         (key - 1 if isinstance(key, int) else key): match.group(key)
                         for key in range(1, len(match.groups()) + 1)
-                        if key not in [1, 2, "content"]
+                        if key not in [1, "content"] and match.group(key) != match.groups()[-1]
                     }
                 ) +
                 cls.parse(match.groups()[-1], path, feed, formats)
@@ -202,7 +203,7 @@ class Text(Element):
         if self.format is None or noFormat:
             return "".join(text.html(site) if isinstance(text, Text) else html.escape(text).replace("\n", "<br>") for text in self.__data)
         else:
-            return self.format.html(self, site)
+            return self.format.html(site)
 
 class Image(Element):
     match = r"\[#(.*?)#]\[(.*?)]"
@@ -216,7 +217,7 @@ class Image(Element):
         return ""
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: set[type[Format]] | None = None) -> Self | None:
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self | None:
         match = re.match(cls.match, text, flags=re.DOTALL)
         if match is None:
             raise SyntaxError(f"Unknown image syntax: {text}.")
@@ -246,7 +247,7 @@ class WebImage(Image):
         self.description = description
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: set[type[Format]] | None = None) -> Self | None:
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self | None:
         match = re.match(cls.match, text, flags=re.DOTALL)
         if match is None:
             raise SyntaxError(f"Unknown image syntax: {text}.")
@@ -267,7 +268,7 @@ class Link(Element):
         return self.text
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: set[type[Format]] | None = None) -> Self:
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self:
         match = re.match(cls.match, text, flags=re.DOTALL)
         if match is None:
             raise SyntaxError(f"Unknown link syntax: {text}.")
@@ -287,7 +288,7 @@ class Code(Element):
         return self.code
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: set[type[Format]] | None = None) -> Self:
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self:
         match = re.match(cls.match, text, flags=re.DOTALL)
         if match is None:
             raise SyntaxError(f"Unknown code block syntax: {text}.")
@@ -307,7 +308,7 @@ class Quote(Element):
         return self.contents
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: set[type[Format]] | None = None) -> Self:
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self:
         match = re.match(cls.match, text, flags=re.DOTALL)
         if match is None:
             raise SyntaxError(f"Unknown code block syntax: {text}.")
@@ -327,7 +328,7 @@ class List(Element):
         return "\n".join(f"- {item}" for item in self.items)
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: set[type[Format]] | None = None) -> Self:
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self:
         match = re.match(cls.match, text, flags=re.DOTALL)
         if match is None:
             raise SyntaxError(f"Unknown code block syntax: {text}.")

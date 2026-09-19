@@ -29,8 +29,8 @@ pip install mergenthaler
 | [Server (automatically updates for new/edited posts/authors)](#serve)                                                     |   ✅   |
 | [Syntax checker](#test)                                                                                                   |   ✅   |
 |                                                                                                                           |        |
-| Custom site themes                                                                                                        |   🛠️   |
-| Plugins                                                                                                                   |   🛠️   |
+| [Custom site themes](/sites.md)                                                                                           |   ✅️   |
+| [Plugins](/plugins.md)                                                                                                    |   ✅   |
 |                                                                                                                           |        |
 | RSS                                                                                                                       |   ⏳   |
 | Markdown to Mergenthaler Markup                                                                                           |   ⏳   |
@@ -90,7 +90,10 @@ Feed tagline/short description
 Feed description
 :Default author name or author-id
 :Default author name or author-id
+* siteTheme
 ```
+Default authors are optional.
+A custom site theme is optional. See [sites.md](/sites.md) for more info.
 
 #### Author
 
@@ -100,6 +103,8 @@ Author name
 [/image.png]
 #group
 #group
+* plugin
+* plugin
 
 Bio/description using Mergenthaler Markup.
 ```
@@ -107,6 +112,7 @@ A custom id is optional. If none is specified, the id will be the alphanumeric a
 An image is optional and can be external, relative to the post, or relative to the feed (see [the section on Markup images](#images)).   
 Groups are optional.
 All lines can be in any order except for the name.
+Plugins are optional. See [plugins.md](/plugins.md) for more info.
 Mergenthaler Markup text formats (e.g. bold) may be used in the bio, but elements (images, links, lists, code blocks, block quotes, or images) may not.
 
 #### Post
@@ -122,6 +128,8 @@ Subtitle/description
 DD/MM/YYYY
 #tag
 #tag
+* plugin
+* plugin
 
 Content using Mergenthaler Markup.
 ```
@@ -130,6 +138,7 @@ An image is optional and can be external, relative to the post, or relative to t
 Authors are optional (if none are specified, it will use the default authors defined in the feed file) and can be the authors id or the author's name (which will throw an error if there are multiple authors with the same name). If an author's file isn't found, it will have their name on the post but they won't have a page of their own.  
 Tags are optional.
 All lines can be in any order except for the title and description.
+Plugins are optional. See [plugins.md](/plugins.md) for more info.
 
 ### CLI
 

@@ -4,13 +4,14 @@ import datetime
 import re
 import inspect
 import math
+import importlib
 
 from .utils import validUrl,removeScheme
 from . import markup
 from . import site
 
 class File:
-    def __init__(self, name: str, feed: Feed, image: markup.Image | None = None, customId: str | None = None, plugins: set[type[markup.Plugin]] | None = None):
+    def __init__(self, name: str, feed: Feed, image: markup.Image | None = None, customId: str | None = None, plugins: set[markup.Plugin] | None = None):
         self.name = name
         if isinstance(image, str):
             self.image = removeScheme(image)
@@ -18,7 +19,7 @@ class File:
             self.image = image
         self.feed = feed
         self.id = type(self).makeId(customId or name)
-        self.plugins = [] if plugins is None else [plugin() for plugin in plugins]
+        self.plugins = set() if plugins is None else plugins
 
     @classmethod
     def parse(cls, path: Path, feed: Feed) -> Self:
@@ -92,9 +93,22 @@ class File:
                     raise ValueError(f"\"{image}\" isn't a file.")
 
                 return "image", markup.Image(name, image)
-        #elif line.startswith("* ") and " " not in line[2:]:
-        #    todo: add plugin installation and parsing
-        #    return "plugins", line[2:]
+        elif line.startswith("* ") and " " not in line[2:]:
+            name = line[2:]
+            moduleName = "mg_"+name
+            try:
+                formats = []
+                elements = []
+                for name, obj in inspect.getmembers(importlib.import_module(moduleName)):
+                    if inspect.isclass(obj) and obj.__module__ == moduleName:
+                        if issubclass(obj, markup.Format):
+                            formats.append(obj)
+                        elif issubclass(obj, markup.Element):
+                            elements.append(obj)
+
+                return "plugins", markup.Plugin(name, formats, elements)
+            except ModuleNotFoundError:
+                raise ModuleNotFoundError(f"Plugin \"{name}\" not found.")
         else:
             raise SyntaxError(f"Unknown metadata in line {i + 1}: '{line}'.")
 
@@ -103,7 +117,7 @@ class File:
         return "".join(char for char in name.lower() if char.isalnum() or char.isspace() or char == "-").replace(" ", "-")
 
 class Post(File):
-    def __init__(self, name: str, description: str, publishDate: datetime.date, content: markup.Markup, feed: Feed, authors: list[Author | str] | None = None, image: markup.Image | None = None, tags: set[str] | None = None, plugins: set[type[markup.Plugin]] | None = None, customId: str | None = None):
+    def __init__(self, name: str, description: str, publishDate: datetime.date, content: markup.Markup, feed: Feed, authors: list[Author | str] | None = None, image: markup.Image | None = None, tags: set[str] | None = None, plugins: set[markup.Plugin] | None = None, customId: str | None = None):
         super().__init__(name, feed, image, customId, plugins)
         self.description = description
         self.date = publishDate
@@ -153,7 +167,7 @@ class Post(File):
             return super().parseMetadataLine(i, line, path, feed)
 
 class Author(File):
-    def __init__(self, name: str, bio: markup.Text, feed: Feed, image: markup.Image | None = None, groups: set[str] | None = None, plugins: set[type[markup.Plugin]] | None = None, customId: str | None = None):
+    def __init__(self, name: str, bio: markup.Text, feed: Feed, image: markup.Image | None = None, groups: set[str] | None = None, plugins: set[markup.Plugin] | None = None, customId: str | None = None):
         super().__init__(name, feed, image, customId, plugins)
         self.bio = bio
         self.groups = set() if groups is None else groups
@@ -169,7 +183,7 @@ class Author(File):
             raise SyntaxError("No metadata found. Make sure to seperate it from the bio with an empty line!") from None
 
         args = cls.parseMetadata(lines[:idx], path, feed)
-        args["bio"] = markup.Text.parse("\n".join(lines[idx + 1:]), path, feed, {format for plugin in args["plugins"] for format in plugin.formats})
+        args["bio"] = markup.Text.parse("\n".join(lines[idx + 1:]), path, feed, [format for plugin in args["plugins"] for format in plugin.formats])
         return cls(**args)
 
     @classmethod
@@ -242,6 +256,24 @@ class Feed:
                     feed.defaultAuthors.append(author)
                 else:
                     feed.defaultAuthors.append("authors")
+            elif line.startswith("* ") and " " not in line[2:]:
+                name = line[2:]
+                try:
+                    sites = []
+                    for name, obj in inspect.getmembers(importlib.import_module("mg_"+name+"_site")):
+                        if inspect.isclass(obj) and issubclass(obj, site.Site) and obj is not site.Site:
+                            sites.append(obj)
+
+                    if len(sites) == 0:
+                        raise ValueError(f"No Site instances found in \"{name}\".")
+                    elif len(sites) > 1:
+                        raise ValueError(f"{len(sites)} Site instances found in \"{name}\". There should only be one.")
+                    elif feed.siteTheme is not site.Site:
+                        raise ValueError(f"Site already set in a previous line!")
+
+                    feed.siteTheme = sites[0]
+                except ModuleNotFoundError:
+                    raise ModuleNotFoundError(f"Site \"{name}\" not found.")
 
         for file in feedDir.rglob("*.mgpost"):
             if not file.is_file():
