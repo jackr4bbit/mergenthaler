@@ -255,7 +255,7 @@ class Feed:
                 elif author := {author.name: author for author in feed.authors}.get(line[1:]):
                     feed.defaultAuthors.append(author)
                 else:
-                    feed.defaultAuthors.append("authors")
+                    feed.defaultAuthors.append(line[1:])
             elif line.startswith("* ") and " " not in line[2:]:
                 name = line[2:]
                 try:
