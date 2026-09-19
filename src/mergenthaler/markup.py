@@ -209,7 +209,7 @@ class Image(Element):
 
     def __init__(self, name: str, path: Path, description: str = ""):
         self.name = name
-        self.path = path
+        self.path = path.resolve()
         self.description = description
 
     def __str__(self) -> str:
