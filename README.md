@@ -169,7 +169,7 @@ The IP address to bind the server to (default 0.0.0.0).
 
 #### Test
 `mg test`.  
-Tests a Mergenthaler feed's syntax.  
+Validates a Mergenthaler feed's syntax.  
 `mg test -l LOCATION`  
 `mg test --location LOCATION`  
 Path to the feed file or directory containing it to test (default current working dir).

@@ -70,7 +70,7 @@ def main():
     parser = argparse.ArgumentParser(description="The Mergenthaler validator, builder, and server.")
     subparsers = parser.add_subparsers(dest="command", required=True, help="Available subcommands")
 
-    testCommand = subparsers.add_parser("test", help="Tests a Mergenthaler feed's syntax.")
+    testCommand = subparsers.add_parser("test", help="Validates a Mergenthaler feed's syntax.")
     testCommand.add_argument("-l", "--location", type=str, help="Path to the feed file or directory containing it to test (default current working dir).")
 
     buildCommand = subparsers.add_parser("build", help="Builds a static site from a Mergenthaler feed.")
