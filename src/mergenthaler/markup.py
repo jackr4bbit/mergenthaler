@@ -178,7 +178,7 @@ class Text(Element):
         matches = []
 
         for format in formats + defaultFormats:
-            for match in re.finditer(r"(.*?)" + format.start + r"(?P<content>.+)" + format.end + r"(.*)", text, flags=re.DOTALL):
+            for match in re.finditer(r"(.*?)" + format.start + r"(?P<content>.+?)" + format.end + r"(.*)", text, flags=re.DOTALL):
                 matches.append((format, match))
 
         if matches:
