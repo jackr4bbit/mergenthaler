@@ -96,12 +96,6 @@ class SimpleFormat(Format):
                 case "start" | "end":
                     setattr(cls, key, re.escape(value))
 
-class Header(SimpleFormat):
-    name = "header"
-    start = "[*"
-    end = "*]"
-    htmlStart = "<h2>"
-
 class Italic(SimpleFormat):
     name = "italic"
     start = "/*"
@@ -127,7 +121,7 @@ class Strikethrough(SimpleFormat):
     end = "--"
     htmlStart = "<s>"
 
-defaultFormats = [Header, Italic, Underline, Bold, Strikethrough]
+defaultFormats = [Italic, Underline, Bold, Strikethrough]
 
 class Text(Element):
     match = r".*"
@@ -256,6 +250,27 @@ class WebImage(Image):
 
         return None
 
+class Header(Element):
+    match = r"\[\*(.+?)\*\]"
+
+    def __init__(self, contents: Text):
+        self.contents = contents
+
+    def __str__(self) -> str:
+        return str(self.contents)
+
+    @classmethod
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self:
+        match = re.match(cls.match, text)
+        if match is None:
+            raise SyntaxError(f"Unknown header syntax: {text}.")
+        else:
+            return cls(Text.parse(match.group(1), path, feed, formats))
+
+    def html(self, site: Site) -> str:
+        return f"<h2>{self.contents.html(site)}</h2>"
+
+    htmlStart = "<h2>"
 
 class Link(Element):
     match = r"\[(.*?)]\[(.*?)]"
@@ -338,4 +353,4 @@ class List(Element):
     def html(self, site: Site) -> str:
         return "<ul>"+"".join(f"<li>{item.html(site)}</li>" for item in self.items)+"</ul>"
 
-defaultElements = [WebImage, Image, Link, List, Code, Quote, Text]
+defaultElements = [WebImage, Image, Header, Link, List, Code, Quote, Text]
