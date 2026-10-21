@@ -22,8 +22,8 @@ pip install mergenthaler
 | [Author files parsing](#author)                                                                                           |   ✅   |
 | [Post files parsing](#post)                                                                                               |   ✅   |
 |                                                                                                                           |        |
-| [Elements: Images (both local and external), Links, Lists, Code blocks, Block quotes, and formatted text](#markup-syntax) |   ✅   |
-| [Text formats: Header, Italic, Underline, Bold, and Strikethrough](#text)                                                 |   ✅   |
+| [Elements: Images (both local and external), Header, Links, Lists, Code blocks, Block quotes, and formatted text](#markup-syntax) |   ✅   |
+| [Text formats: Italic, Underline, Bold, and Strikethrough](#text)                                                 |   ✅   |
 |                                                                                                                           |        |
 | [Static site generator](#build)                                                                                           |   ✅   |
 | [Server (automatically updates for new/edited posts/authors)](#serve)                                                     |   ✅   |
@@ -46,6 +46,12 @@ pip install mergenthaler
 [#Alt text#][relative/to/this/post.png]
 [#Alt text#][https://picsum.photos/200/300]
 ```
+
+### Headers
+```mgmarkup
+[*Post <*section*>*]
+```
+Headers can use [text formatting](#text).
 
 #### Links
 ```mgmarkup
@@ -75,7 +81,6 @@ Line two
 
 #### Text
 Formats:
-- `[*Header*]`
 - `/*Italic*/`
 - `__Underlined__`
 - `<*Bold*>`
