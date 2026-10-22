@@ -26,6 +26,9 @@ class Markup:
 
         return cast(Self, type(self)(other.elements + self.elements))
 
+    def __str__(self) -> str:
+        return " ".join(str(item) for item in self.elements)
+
     def html(self, site: Site) -> str:
         return "".join(f"<p>{element.html(site)}</p>" if isinstance(element, Text) else element.html(site) for element in self.elements)
 
@@ -38,7 +41,7 @@ class Markup:
             for elementType in [elementType for plugin in plugins for elementType in plugin.elements] + defaultElements:
                 match = re.search(elementType.match, remaining, flags=re.DOTALL | re.MULTILINE)
                 if match:
-                    element = elementType.parse(remaining[match.start():match.end()], path, feed, [format for plugin in plugins for format in plugin.formats])
+                    element = elementType.parse(remaining[match.start():match.end()], path, feed, plugins)
                     if element:
                         parts = []
                         parts += parseParts(remaining[:match.start()])
@@ -56,7 +59,7 @@ class Element:
     def __str__(self) -> str: ...
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self | None: ...
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, plugins: set[Plugin] | None = None) -> Self | None: ...
 
     def html(self, site: Site) -> str: ...
 
@@ -165,9 +168,10 @@ class Text(Element):
         return len(self.__data) == 0
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self:
-        if formats is None:
-            formats = []
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, plugins: set[Plugin] | None = None) -> Self:
+        if plugins is None:
+            plugins = set()
+        formats = [format for plugin in plugins for format in plugin.formats]
 
         matches = []
 
@@ -178,9 +182,9 @@ class Text(Element):
         if matches:
             format, match = min(matches, key=lambda x: x[1].start())
             return (
-                cls.parse(match.group(1), path, feed, formats) +
+                cls.parse(match.group(1), path, feed, plugins) +
                 cls(
-                    text = cls.parse(match.group("content"), path, feed, formats),
+                    text = cls.parse(match.group("content"), path, feed, plugins),
                     format = format,
                     groups = {
                         (key - 1 if isinstance(key, int) else key): match.group(key)
@@ -188,7 +192,7 @@ class Text(Element):
                         if key not in [1, "content"] and match.group(key) != match.groups()[-1]
                     }
                 ) +
-                cls.parse(match.groups()[-1], path, feed, formats)
+                cls.parse(match.groups()[-1], path, feed, plugins)
             )
 
         return cls(text)
@@ -211,7 +215,7 @@ class Image(Element):
         return ""
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self | None:
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, plugins: set[Plugin] | None = None) -> Self | None:
         match = re.match(cls.match, text, flags=re.DOTALL)
         if match is None:
             raise SyntaxError(f"Unknown image syntax: {text}.")
@@ -241,7 +245,7 @@ class WebImage(Image):
         self.description = description
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self | None:
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, plugins: set[Plugin] | None = None) -> Self | None:
         match = re.match(cls.match, text, flags=re.DOTALL)
         if match is None:
             raise SyntaxError(f"Unknown image syntax: {text}.")
@@ -260,12 +264,12 @@ class Header(Element):
         return str(self.contents)
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self:
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, plugins: set[Plugin] | None = None) -> Self:
         match = re.match(cls.match, text)
         if match is None:
             raise SyntaxError(f"Unknown header syntax: {text}.")
         else:
-            return cls(Text.parse(match.group(1), path, feed, formats))
+            return cls(Text.parse(match.group(1), path, feed, set() if plugins is None else plugins))
 
     def html(self, site: Site) -> str:
         return f"<h2>{self.contents.html(site)}</h2>"
@@ -283,7 +287,7 @@ class Link(Element):
         return self.text
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self:
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, plugins: set[Plugin] | None = None) -> Self:
         match = re.match(cls.match, text, flags=re.DOTALL)
         if match is None:
             raise SyntaxError(f"Unknown link syntax: {text}.")
@@ -303,7 +307,7 @@ class Code(Element):
         return self.code
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self:
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, plugins: set[Plugin] | None = None) -> Self:
         match = re.match(cls.match, text, flags=re.DOTALL)
         if match is None:
             raise SyntaxError(f"Unknown code block syntax: {text}.")
@@ -323,7 +327,7 @@ class Quote(Element):
         return self.contents
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self:
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, plugins: set[Plugin] | None = None) -> Self:
         match = re.match(cls.match, text, flags=re.DOTALL)
         if match is None:
             raise SyntaxError(f"Unknown code block syntax: {text}.")
@@ -336,21 +340,21 @@ class Quote(Element):
 class List(Element):
     match = r"^(?:- [^\n]*(?:\n|$))+"
 
-    def __init__(self, items: list[Text]):
+    def __init__(self, items: list[Markup]):
         self.items = items
 
     def __str__(self) -> str:
         return "\n".join(f"- {item}" for item in self.items)
 
     @classmethod
-    def parse(cls, text: str, path: Path, feed: parseModule.Feed, formats: list[type[Format]] | None = None) -> Self:
+    def parse(cls, text: str, path: Path, feed: parseModule.Feed, plugins: set[Plugin] | None = None) -> Self:
         match = re.match(cls.match, text, flags=re.DOTALL)
         if match is None:
             raise SyntaxError(f"Unknown code block syntax: {text}.")
         else:
-            return cls([Text.parse(item, path, feed) for item in match.group(0).strip()[2:].replace("\n- ", "\n").splitlines()])
+            return cls([Markup.parse(item, path, feed, set() if plugins is None else plugins) for item in match.group(0).strip()[2:].replace("\n- ", "\n").splitlines()])
 
     def html(self, site: Site) -> str:
         return "<ul>"+"".join(f"<li>{item.html(site)}</li>" for item in self.items)+"</ul>"
 
-defaultElements = [WebImage, Image, Header, Link, List, Code, Quote, Text]
+defaultElements = [List, WebImage, Image, Header, Link, Code, Quote, Text]

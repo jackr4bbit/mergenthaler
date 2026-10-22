@@ -63,7 +63,7 @@ Headers can use [text formatting](#text).
 - item /*one*/
 - item /*two*/
 ```
-Each item can use [text formatting](#text).
+Each item can use [Markup](#markup-syntax).
 
 #### Code blocks
 ```mgmarkup
