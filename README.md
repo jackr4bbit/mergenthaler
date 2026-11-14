@@ -62,8 +62,11 @@ Headers can use [text formatting](#text).
 ```mgmarkup
 - item /*one*/
 - item /*two*/
+  - indented item
+    - more indented item
 ```
 Each item can use [Markup](#markup-syntax).
+Lists support up to 9 indents. If you put an odd number of spaces before the hyphen, one will be ignored.
 
 #### Code blocks
 ```mgmarkup

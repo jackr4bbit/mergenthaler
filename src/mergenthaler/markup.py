@@ -338,23 +338,35 @@ class Quote(Element):
         return f"<blockquote>{self.contents.replace("\n", "<br>")}</blockquote>"
 
 class List(Element):
-    match = r"^(?:- [^\n]*(?:\n|$))+"
+    match = r"^(?:\s*- [^\n]*(?:\n|$))+"
 
-    def __init__(self, items: list[Markup]):
+    def __init__(self, items: list[tuple[int, Markup]]):
         self.items = items
 
     def __str__(self) -> str:
-        return "\n".join(f"- {item}" for item in self.items)
+        return "\n".join(f"{" "*indent*2}- {item}" for indent, item in self.items)
 
     @classmethod
     def parse(cls, text: str, path: Path, feed: parseModule.Feed, plugins: set[Plugin] | None = None) -> Self:
-        match = re.match(cls.match, text, flags=re.DOTALL)
-        if match is None:
+        matches = re.finditer(r"(\s*)- ([^\n]*)(?:\n|$)", text, flags=re.DOTALL)
+        if matches is None:
             raise SyntaxError(f"Unknown code block syntax: {text}.")
         else:
-            return cls([Markup.parse(item, path, feed, set() if plugins is None else plugins) for item in match.group(0).strip()[2:].replace("\n- ", "\n").splitlines()])
+            return cls([(len(match.group(1))//2, Markup.parse(match.group(2), path, feed, set() if plugins is None else plugins)) for match in matches])
 
     def html(self, site: Site) -> str:
-        return "<ul>"+"".join(f"<li>{item.html(site)}</li>" for item in self.items)+"</ul>"
+        lastIndent = 0
+        string = "<ul>"
+        for indent, item in self.items:
+            difference = indent - lastIndent
+            if difference > 0:
+                string += "<ul>" * difference
+            elif difference < 0:
+                string += "</ul>" * (0 - difference)
+            string += f"<li>{item.html(site)}</li>"
+            lastIndent = indent
+        string += "</ul>"
+
+        return string
 
 defaultElements = [List, WebImage, Image, Header, Link, Code, Quote, Text]
