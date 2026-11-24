@@ -1,4 +1,3 @@
-
 # Mergenthaler
 ## A blogging platform with its own markup language.
 
